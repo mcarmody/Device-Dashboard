@@ -46,27 +46,27 @@ $(document).ready(function() {
 	];
 
 	// load up the element data on page load
-	$(forceRefresh);
+	//$(forceRefresh);
 
 	//hide the edit menu children, this is a
 	//temporary solution to a toggle-visibility issue
 	editMenu.children().toggle();
 
 	//run the refresh on every Device row every 2 minutes (default)
-	setInterval(forceRefresh, 120000);
+	//setInterval(forceRefresh, 120000);
 
 
-	//copied from official HoloLens API Portal, WIP
-	function OSInformationControl(n) {
-	    var t = this;
-	    t.parent = n;
-	    (new WebbRest).getSoftwareInfo().done(function(t) {
-	        var i = '<div class="deviceID">';
-	        i += t.ComputerName;
-	    }).fail(function() {
-	        $("#" + n).append('<p class="warning">Failed to get system information<\/p>')
-	    })
-	}
+	// //copied from official HoloLens API Portal, WIP
+	// function OSInformationControl(n) {
+	//     var t = this;
+	//     t.parent = n;
+	//     (new WebbRest).getSoftwareInfo().done(function(t) {
+	//         var i = '<div class="deviceID">';
+	//         i += t.ComputerName;
+	//     }).fail(function() {
+	//         $("#" + n).append('<p class="warning">Failed to get system information<\/p>')
+	//     })
+	// }
 
 	// the high and/or low alert values
 	$('#updateSidebarButton').click(function() {
@@ -92,11 +92,11 @@ $(document).ready(function() {
 
 
 		// this is just to prove that the alerts API request url works	
-		$.getJSON(DevicesList[0] + '/api/holographic/os/settings/ipd', function(data) {
-			console.log("hello");
-		})
+		// $.getJSON("https://" + DevicesList[0] + '/api/holographic/os/webmanagement/settings/https', function(data) {
+		// 	console.log(data);
+		// })
 
-		$(forceRefresh);
+		//$(forceRefresh);
 	});
 
 	//animate the edit menu and update the values there
@@ -110,7 +110,7 @@ $(document).ready(function() {
 	});
 
 	// update the alert count, and check latest data readings
-	$('#alertButton').click(updateTable);
+	//$('#alertButton').click(updateTable);
 
 	//this is for opening the 'Alert Details' panel
 	$('.deviceRow').on('click', '.alertLink', function() {
@@ -155,201 +155,224 @@ $(document).ready(function() {
 	// -------------------------
 
 
-	// the function to refresh
-	function updateTable() {
-		var highAlertCounter = 0;
-		var lowAlertCounter = 0;
-		selectedElement = $(this);
+	$.ajax({
+    	url: "https://" + DevicesList[0] + "/api/power/state",
+      	type: 'GET',
+     	// async: true,
+	    // dataType: 'application/json',
+	    // headers: {
+	    // 	'Authorization': 'Basic bWNhcm1vZHk6cGFzc3dvcmQ=',
+	    // },
+	    xhrFields: {
+          withCredentials: true
+        },
+        crossDomain: true,
+        beforeSend: function(xhr){
+        	xhr.setRequestHeader("Authorization", "Basic bWNhcm1vZHk6cGFzc3dvcmQ=");
+ 			xhr.setRequestHeader("Access-Control-Allow-Origin",'Origin');
+        },
+        success: function() { alert("success!"); },
+    	error: function (xhr, desc, err) {
+		  console.log("Desc: " + desc + "\nErr:" + err);
+		  //alert("nope!");
+		},
+    });
 
-		var highAlertHTML = $(this).siblings(".batteryLevel");
-		var lowAlertHTML = $(this).siblings(".deviceIPD");
-		var tempHTML = $(this).siblings(".elementDatum");
-		var DeviceNameHTML = $(this).siblings(".deviceID");
+
+
+	// // the function to refresh
+	// function updateTable() {
+	// 	var highAlertCounter = 0;
+	// 	var lowAlertCounter = 0;
+	// 	selectedElement = $(this);
+
+	// 	var batteryLevelHTML = $(this).siblings(".batteryLevel");
+	// 	var deviceIPDHTML = $(this).siblings(".deviceIPD");
+	// 	var deviceTimeHTMl = $(this).siblings(".deviceTime");
+	// 	var DeviceNameHTML = $(this).siblings(".deviceID");
 		
 
-		$.getJSON("https://api.elementalDevices.io/api/Devices/" + DevicesList[0] + "/samples.json?access_token=7eb3d0a32f2ba1e8039657ef2bd1913d95707ff53e37dfd0344ac62ded3df033&from="+fiveHoursAgo+"&limit="+limit, function(data) {
+	// 	$.getJSON("https://" + DevicesList[0] + "/api/holographic/os/settings/ipd", function(data) {
 			
-				//check to make sure we can receive and parse the API data at all
-				console.log("Current temperature is " + data[data.length-1].tempextcal + ", logged at: " + data[data.length-1].sample_date);
-				temp = data[data.length-1].tempextcal;
-				console.log(temp);
+	// 			//check to make sure we can receive and parse the API data at all
+	// 			console.log(data);
 
-				var i;
+	// 			var i;
 
-				for (i = 0; i < data.length; i++) {
-					loopTemp = data[i].tempextcal;
-					loopTimeStamp = data[i].sample_epoch;
-					loopDate = data[i].sample_date;
+	// 			for (i = 0; i < data.length; i++) {
+	// 				loopTemp = data[i].tempextcal;
+	// 				loopTimeStamp = data[i].sample_epoch;
+	// 				loopDate = data[i].sample_date;
 
-					// high temp alert check
-					if (Math.abs(loopTemp) < Math.abs(highAlert)) {
-						highAlertCounter++;
-						//console.log(temp);
-					};
+	// 				// high temp alert check
+	// 				if (Math.abs(loopTemp) < Math.abs(highAlert)) {
+	// 					highAlertCounter++;
+	// 					//console.log(temp);
+	// 				};
 
-					// low temp alert check
-					if (Math.abs(loopTemp) > Math.abs(lowAlert)) {
-						lowAlertCounter++;
-						//console.log(temp);
-					};
+	// 				// low temp alert check
+	// 				if (Math.abs(loopTemp) > Math.abs(lowAlert)) {
+	// 					lowAlertCounter++;
+	// 					//console.log(temp);
+	// 				};
 
-					if (Math.abs(loopTemp) > maxTemp) {
-						maxTemp = data[i].tempextcal;
-					};
-				};
+	// 				if (Math.abs(loopTemp) > maxTemp) {
+	// 					maxTemp = data[i].tempextcal;
+	// 				};
+	// 			};
 
-				console.log("done, data length: " + data.length);
-				console.log("There have been " + highAlertCounter + " high-temp alerts and " + lowAlertCounter + " low alerts in the past " + limit / 240 + " hours.");
-		}).done( function() {
+	// 			console.log("done, data length: " + data.length);
+	// 			console.log("There have been " + highAlertCounter + " high-temp alerts and " + lowAlertCounter + " low alerts in the past " + limit / 240 + " hours.");
+	// 	}).done( function() {
 
-			//update the page text
-			highAlertHTML.html(highAlertCounter);
-			lowAlertHTML.html(lowAlertCounter);
-			tempHTML.html(temp);
+	// 		//update the page text
+	// 		highAlertHTML.html(highAlertCounter);
+	// 		lowAlertHTML.html(lowAlertCounter);
+	// 		tempHTML.html(temp);
 
-		}).done( function() {
+	// 	}).done( function() {
 
-			var highAlertLink = $(selectedElement).siblings('.batteryLevel');
-			var lowAlertLink = $(selectedElement).siblings('.deviceIPD');
+	// 		var highAlertLink = $(selectedElement).siblings('.batteryLevel');
+	// 		var lowAlertLink = $(selectedElement).siblings('.deviceIPD');
 
-			if (highAlertLink.text() > 0) {
-				highAlertLink.addClass('alertLink');
-			} else {
-				highAlertLink.removeClass('alertLink');
-			};
+	// 		if (highAlertLink.text() > 0) {
+	// 			highAlertLink.addClass('alertLink');
+	// 		} else {
+	// 			highAlertLink.removeClass('alertLink');
+	// 		};
 
-			if (lowAlertLink.text() > 0) {
-				lowAlertLink.addClass('alertLink');
-			} else {
-				lowAlertLink.removeClass('alertLink');
-			};
-		});
+	// 		if (lowAlertLink.text() > 0) {
+	// 			lowAlertLink.addClass('alertLink');
+	// 		} else {
+	// 			lowAlertLink.removeClass('alertLink');
+	// 		};
+	// 	});
 
-		//update the Device name
+	// 	//update the Device name
 
-		$.getJSON("https://api.elementalDevices.io:443/api/Devices/" + DevicesList[0] + ".json?access_token=7eb3d0a32f2ba1e8039657ef2bd1913d95707ff53e37dfd0344ac62ded3df033", function(data) {
-			DeviceNameHTML.html(data.name);
-		});
+	// 	$.getJSON("https://" + DevicesList[0], function(data) {
+	// 		DeviceNameHTML.html(data.name);
+	// 	});
 
 
-		// make the date human-readable
+	// 	// make the date human-readable
 
-		var hours;
+	// 	var hours;
 
-		if (today.getHours() > 12) {
-			hours = today.getHours()-12;
-			isAM = false;
-		} else {
-			hours = today.getHours();
-		};
+	// 	if (today.getHours() > 12) {
+	// 		hours = today.getHours()-12;
+	// 		isAM = false;
+	// 	} else {
+	// 		hours = today.getHours();
+	// 	};
 		
-		var minutes;
+	// 	var minutes;
 
-		if (today.getMinutes() < 10) {
-			minutes = "0" + today.getMinutes()
-		} else {
-			minutes = today.getMinutes();
-		};
+	// 	if (today.getMinutes() < 10) {
+	// 		minutes = "0" + today.getMinutes()
+	// 	} else {
+	// 		minutes = today.getMinutes();
+	// 	};
 
-		if (isAM) {
-			minutes = minutes + " AM"
-		} else {
-			minutes = minutes + " PM"
-		};
+	// 	if (isAM) {
+	// 		minutes = minutes + " AM"
+	// 	} else {
+	// 		minutes = minutes + " PM"
+	// 	};
 
-		readableDate = today.getMonth()+1 + "/" + today.getDate() + "/" + (today.getYear()-100) + ", " + hours + ":" + minutes;
+	// 	readableDate = today.getMonth()+1 + "/" + today.getDate() + "/" + (today.getYear()-100) + ", " + hours + ":" + minutes;
 
 
-		//update the page text
-		$(this).siblings(".lastUpdate").html(readableDate);
-	};
+	// 	//update the page text
+	// 	$(this).siblings(".lastUpdate").html(readableDate);
+	// };
 
-	function forceRefresh() {
-	    $('#alertButton').click(function() {
-	        //this just simulates a click, running the update function
-	        //in case this needs to happen without an actual click from the user
-	    }).click();
-	};
+	// function forceRefresh() {
+	//     $('#alertButton').click(function() {
+	//         //this just simulates a click, running the update function
+	//         //in case this needs to happen without an actual click from the user
+	//     }).click();
+	// };
 
-	// this is the function to render and dynamically fill the details modal
-	function tempAlertModal(isHighAlert) {
-		alertsModal.fadeIn();
-		$('.modalOverlay').fadeIn();
-		alertsModal.find('.alertsDetail').html('');
-		alertsModal.find('#alertsHeader').html('');
-		alertsModal.find('.currentTemp').html('');
+	// // this is the function to render and dynamically fill the details modal
+	// function tempAlertModal(isHighAlert) {
+	// 	alertsModal.fadeIn();
+	// 	$('.modalOverlay').fadeIn();
+	// 	alertsModal.find('.alertsDetail').html('');
+	// 	alertsModal.find('#alertsHeader').html('');
+	// 	alertsModal.find('.currentTemp').html('');
 
-		$.getJSON("https://api.elementalDevices.io:443/api/Devices/" + DevicesList[0] + ".json?access_token=7eb3d0a32f2ba1e8039657ef2bd1913d95707ff53e37dfd0344ac62ded3df033", function(data) {
-			alertsModal.find('#alertsHeader').html(data.name);
-		});
+	// 	$.getJSON(DevicesList[0], function(data) {
+	// 		alertsModal.find('#alertsHeader').html(data.name);
+	// 	});
 
-		$.getJSON("https://api.elementalDevices.io/api/Devices/" + DevicesList[0] + "/samples.json?access_token=7eb3d0a32f2ba1e8039657ef2bd1913d95707ff53e37dfd0344ac62ded3df033&from="+fiveHoursAgo+"&limit="+limit, function(data) {
+	// 	$.getJSON(DevicesList[0], function(data) {
 			
-			//check to make sure we can receive and parse the API data at all
-			temp = data[data.length-1].tempextcal;
-			$('.currentTemp').html('Current Temperature: ' + temp + '°C');
-			console.log('working');
+	// 		//check to make sure we can receive and parse the API data at all
+	// 		temp = data[data.length-1].tempextcal;
+	// 		$('.currentTemp').html('Current Temperature: ' + temp + '°C');
+	// 		console.log('working');
 
-			var i;
+	// 		var i;
 
-			for (i = 0; i < data.length; i++) {
-				loopTemp = data[i].tempextcal;
-				var loopDate = new Date(data[i].sample_epoch*1000);
+	// 		for (i = 0; i < data.length; i++) {
+	// 			loopTemp = data[i].tempextcal;
+	// 			var loopDate = new Date(data[i].sample_epoch*1000);
 
-				if (loopDate.getHours() > 12) {
-					hours = loopDate.getHours()-12;
-					isAM = false;
-				} else {
-					hours = loopDate.getHours();
-				};
+	// 			if (loopDate.getHours() > 12) {
+	// 				hours = loopDate.getHours()-12;
+	// 				isAM = false;
+	// 			} else {
+	// 				hours = loopDate.getHours();
+	// 			};
 				
-				var minutes;
+	// 			var minutes;
 
-				if (loopDate.getMinutes() < 10) {
-					minutes = "0" + loopDate.getMinutes()
-				} else {
-					minutes = loopDate.getMinutes();
-				};
+	// 			if (loopDate.getMinutes() < 10) {
+	// 				minutes = "0" + loopDate.getMinutes()
+	// 			} else {
+	// 				minutes = loopDate.getMinutes();
+	// 			};
 
-				if (isAM) {
-					minutes = minutes + " AM"
-				} else {
-					minutes = minutes + " PM"
-				};
+	// 			if (isAM) {
+	// 				minutes = minutes + " AM"
+	// 			} else {
+	// 				minutes = minutes + " PM"
+	// 			};
 
-				readableDate = loopDate.getMonth()+1 + "/" + loopDate.getDate() + "/" + (loopDate.getYear()-100) + ", " + hours + ":" + minutes;
+	// 			readableDate = loopDate.getMonth()+1 + "/" + loopDate.getDate() + "/" + (loopDate.getYear()-100) + ", " + hours + ":" + minutes;
 
 
-				// conditional to check if we're doing a high or low alert modal
-				if (isHighAlert) {
+	// 			// conditional to check if we're doing a high or low alert modal
+	// 			if (isHighAlert) {
 
-					//if the gathered temp is higher (absolute value because jquery sucks at negative numbers)
-					//than the alert threshold, we add a div with the details to the details modal's table
-					if (Math.abs(loopTemp) < Math.abs(highAlert)) {
-						alertsModal.find('.alertsDetail').append('<div class="singleAlertDate">' + readableDate + '</div><div class="singleAlertTemp">' + loopTemp + ' °C </div>');
-						//console.log(temp);
-					};
-				} else {
+	// 				//if the gathered temp is higher (absolute value because jquery sucks at negative numbers)
+	// 				//than the alert threshold, we add a div with the details to the details modal's table
+	// 				if (Math.abs(loopTemp) < Math.abs(highAlert)) {
+	// 					alertsModal.find('.alertsDetail').append('<div class="singleAlertDate">' + readableDate + '</div><div class="singleAlertTemp">' + loopTemp + ' °C </div>');
+	// 					//console.log(temp);
+	// 				};
+	// 			} else {
 
-					//if the gathered temp is lower (absolute value because jquery sucks at negative numbers)
-					//than the alert threshold, we add a div with the details to the details modal's table
-					if (Math.abs(loopTemp) > Math.abs(lowAlert)) {
-						alertsModal.find('.alertsDetail').append('<div class="singleAlertDate">' + readableDate + '</div><div class="singleAlertTemp">' + loopTemp + ' °C </div>');
-						//console.log(temp);
-					};
-				};
-			};
+	// 				//if the gathered temp is lower (absolute value because jquery sucks at negative numbers)
+	// 				//than the alert threshold, we add a div with the details to the details modal's table
+	// 				if (Math.abs(loopTemp) > Math.abs(lowAlert)) {
+	// 					alertsModal.find('.alertsDetail').append('<div class="singleAlertDate">' + readableDate + '</div><div class="singleAlertTemp">' + loopTemp + ' °C </div>');
+	// 					//console.log(temp);
+	// 				};
+	// 			};
+	// 		};
 
-			//run the same conditional to check for high or low alert,
-			//except this time outside of the for-loop
-			if (isHighAlert) {
-				alertsModal.find('.modalThresholdText').html('High Temp Threshold: ' + highAlert + '°C');
-			} else {
-				alertsModal.find('.modalThresholdText').html('Low Temp Threshold: ' + lowAlert + '°C');
-			}
+	// 		//run the same conditional to check for high or low alert,
+	// 		//except this time outside of the for-loop
+	// 		if (isHighAlert) {
+	// 			alertsModal.find('.modalThresholdText').html('High Temp Threshold: ' + highAlert + '°C');
+	// 		} else {
+	// 			alertsModal.find('.modalThresholdText').html('Low Temp Threshold: ' + lowAlert + '°C');
+	// 		}
 
-		});
-	};
+	// 	});
+	// };
 
 	function openDetailsSidebar() {
 		editMenu.animate({width:'toggle'},300);
@@ -361,7 +384,7 @@ $(document).ready(function() {
 		$('.highTempInput').val('');
 		$('.lowTempInput').val('');
 
-		$.getJSON("https://api.elementalDevices.io:443/api/Devices/" + DevicesList[0] + ".json?access_token=7eb3d0a32f2ba1e8039657ef2bd1913d95707ff53e37dfd0344ac62ded3df033", function(data) {
+		$.getJSON(DevicesList[0], function(data) {
 			editMenu.find('.editHeader').html(data.name);
 		});
 	};
@@ -382,7 +405,7 @@ $(document).ready(function() {
 	function closeModal() {
 		$('.modal').fadeOut();
 		$('.modalOverlay').fadeOut();
-		$(forceRefresh);
+		//$(forceRefresh);
 	}
 });
 
